@@ -17,12 +17,12 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
             const string oauthUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
             var adminPermissionRequired = values.First(v => v.Key == "AdminPermissionRequired").Value.ToLower();
             var requiredScope = adminPermissionRequired == "yes"
-                ? ApplicationConstants.FullScope
-                : ApplicationConstants.LimitedScope;
+                ? ApplicationConstants.TeamsFullScope
+                : ApplicationConstants.TeamsLimitedScope;
             
             var parameters = new Dictionary<string, string>
             {
-                { "client_id", ApplicationConstants.ClientId },
+                { "client_id", ApplicationConstants.TeamsClientId },
                 { "redirect_uri", $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/AuthorizationCode" },
                 { "scope", requiredScope },
                 { "state", values["state"] },

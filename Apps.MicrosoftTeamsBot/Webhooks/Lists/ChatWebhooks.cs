@@ -1,7 +1,6 @@
 ﻿using Apps.MicrosoftTeamsBot.Dtos;
 using Apps.MicrosoftTeamsBot.Webhooks.Handlers.Chat;
 using Apps.MicrosoftTeamsBot.Webhooks.Inputs;
-using Apps.MicrosoftTeamsBot.Webhooks.Lists.ItemGetters.Chat;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Webhooks;
 
@@ -17,8 +16,7 @@ public class ChatWebhooks : BaseWebhookList
     public async Task<WebhookResponse<ChatMessageDto>> OnMessageSent(WebhookRequest request, 
         [WebhookParameter] ChatInput chat, [WebhookParameter] SenderInput sender)
     {
-        return await HandleWebhookRequest(request, 
-            new ChatMessageWithSenderGetter(AuthenticationCredentialsProviders, chat, sender));
+        return await HandleWebhookRequest<ChatMessageDto>(request);
     }
     
     //[Webhook("On message with attachments sent to chat", typeof(MessageSentToChatWebhookHandler), 
