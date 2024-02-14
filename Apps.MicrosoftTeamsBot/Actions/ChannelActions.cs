@@ -36,7 +36,7 @@ public class ChannelActions : BaseInvocable
     }
 
     [Action("Reply to message in channel", Description = "Reply to message in channel")]
-    public void ReplyToMessageInChannel([ActionParameter] ChannelIdentifier channelIdentifier,
+    public ChatMessageDto ReplyToMessageInChannel([ActionParameter] ChannelIdentifier channelIdentifier,
         [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
     {
         var botClient = new MSTeamsBotClient(input.BotServiceUrl);
@@ -48,7 +48,7 @@ public class ChannelActions : BaseInvocable
             type = "message",
             text = input.Message
         });
-        botClient.Execute(botRequest);
+        return botClient.Execute<ChatMessageDto>(botRequest).Data;
     }
 
     //[Action("Get channel message", Description = "Get channel message")]
