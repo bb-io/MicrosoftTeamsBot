@@ -26,7 +26,6 @@ namespace Apps.MicrosoftTeamsBot
             request.AddParameter("client_secret", ApplicationConstants.BotClientSecret);
             request.AddParameter("scope", ApplicationConstants.BotScope);
             var response = client.ExecuteAsync<NotAuthResponse>(request).Result;
-            throw new ArgumentException($"{ApplicationConstants.BotClientId}, {ApplicationConstants.BotClientSecret}, {ApplicationConstants.BotScope}");
             this.AddHeader("Authorization", $"Bearer {response.Data.AccessToken}");
         }
     }

@@ -16,7 +16,7 @@ namespace Apps.MicrosoftTeamsBot
 
         protected override Exception ConfigureErrorException(RestResponse response)
         {
-            return new ArgumentException(response.ErrorMessage);
+            return new ArgumentException(response.StatusCode.ToString());
         }
     }
 }
