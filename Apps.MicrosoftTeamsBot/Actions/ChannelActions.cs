@@ -51,6 +51,22 @@ public class ChannelActions : BaseInvocable
         return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
     }
 
+    [Action("Send message to channel", Description = "Send message to channel")]
+    public async Task<ChatMessageDto> SendMessageToChannel([ActionParameter] ChannelIdentifier channelIdentifier,
+        [ActionParameter] SendMessageRequest input)
+    {
+        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        var botRequest = new MSTeamsBotRequest(
+            $"v3/conversations/{channelIdentifier.TeamChannelId}/activities",
+            Method.Post, _authenticationCredentialsProviders);
+        botRequest.AddJsonBody(new
+        {
+            type = "message",
+            text = input.Message
+        });
+        return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
+    }
+
     //[Action("Get channel message", Description = "Get channel message")]
     //public async Task<ChannelMessageDto> GetChannelMessage([ActionParameter] ChannelIdentifier channelIdentifier, 
     //    [ActionParameter] MessageIdentifier messageIdentifier)
