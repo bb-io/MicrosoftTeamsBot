@@ -29,14 +29,14 @@ public abstract class BaseWebhookHandler : BaseInvocable, IWebhookEventHandler
     public async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         Dictionary<string, string> values)
     {
-        var bridgeService = new BridgeService("https://1e7b-178-211-106-141.ngrok-free.app/api");//InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/'));
+        var bridgeService = new BridgeService(InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/'));
         await bridgeService.Subscribe(values["payloadUrl"], SubscriptionId, _subscriptionEvent);
     }
 
     public async Task UnsubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         Dictionary<string, string> values)
     {
-        var bridgeService = new BridgeService("https://1e7b-178-211-106-141.ngrok-free.app/api");//InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/'));
+        var bridgeService = new BridgeService(InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/'));
         var webhooksLeft = await bridgeService.Unsubscribe(values["payloadUrl"], SubscriptionId, _subscriptionEvent);
     }
 }

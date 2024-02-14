@@ -1,6 +1,7 @@
 ﻿using Apps.MicrosoftTeamsBot.Dtos;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Utils.RestSharp;
+using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -25,8 +26,8 @@ namespace Apps.MicrosoftTeamsBot
             request.AddParameter("client_id", ApplicationConstants.BotClientId);
             request.AddParameter("client_secret", ApplicationConstants.BotClientSecret);
             request.AddParameter("scope", ApplicationConstants.BotScope);
-            var response = client.ExecuteAsync<NotAuthResponse>(request).Result;
-            this.AddHeader("Authorization", $"Bearer {response.Data.AccessToken}");
+            var response = JsonConvert.DeserializeObject<NotAuthResponse>(client.ExecuteAsync(request).Result.Content);
+            this.AddHeader("Authorization", $"Bearer {response.AccessToken}");
         }
     }
 }
