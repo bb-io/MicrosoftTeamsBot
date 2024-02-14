@@ -11,8 +11,8 @@ public class ChatWebhooks : BaseWebhookList
 {
     public ChatWebhooks(InvocationContext invocationContext) : base(invocationContext) { }
     
-    [Webhook("On message sent to chat", typeof(MessageSentToChatWebhookHandler), 
-        Description = "This webhook is triggered when a message is sent to the chat.")]
+    [Webhook("On bot mentioned in chat", typeof(MessageSentToChatWebhookHandler), 
+        Description = "On bot mentioned in chat")]
     public async Task<WebhookResponse<ChatMessageDto>> OnMessageSent(WebhookRequest request, 
         [WebhookParameter] ChatInput chat, [WebhookParameter] SenderInput sender)
     {
