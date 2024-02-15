@@ -13,6 +13,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
+using RestSharp;
 
 namespace Apps.MicrosoftTeamsBot.Actions
 {
@@ -28,7 +29,39 @@ namespace Apps.MicrosoftTeamsBot.Actions
             _authenticationCredentialsProviders = invocationContext.AuthenticationCredentialsProviders;
             _fileManagementClient = fileManagementClient;
         }
-        
+
+        [Action("Reply to message in chat", Description = "Reply to message in chat")]
+        public async Task<ChatMessageDto> ReplyToMessageInChat([ActionParameter] ChatIdentifier chatIdentifier,
+        [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
+        {
+            var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+            var botRequest = new MSTeamsBotRequest(
+                $"v3/conversations/{chatIdentifier.ChatId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}",
+                Method.Post, _authenticationCredentialsProviders);
+            botRequest.AddJsonBody(new
+            {
+                type = "message",
+                text = input.Message
+            });
+            return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
+        }
+
+        [Action("Send message to chat", Description = "Send message to chat")]
+        public async Task<ChatMessageDto> SendMessageToChat([ActionParameter] ChatIdentifier chatIdentifier,
+        [ActionParameter] SendMessageRequest input)
+        {
+            var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+            var botRequest = new MSTeamsBotRequest(
+                $"v3/conversations/{chatIdentifier.ChatId}/activities",
+                Method.Post, _authenticationCredentialsProviders);
+            botRequest.AddJsonBody(new
+            {
+                type = "message",
+                text = input.Message
+            });
+            return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
+        }
+
         //[Action("List chats", Description = "List chats")]
         //public async Task<ListChatsResponse> ListChats()
         //{
@@ -64,7 +97,7 @@ namespace Apps.MicrosoftTeamsBot.Actions
         //        throw new Exception(error.Error.Message);
         //    }
         //}
-        
+
         //[Action("Download files attached to chat message", Description = "Download files attached to chat message")]
         //public async Task<DownloadFilesAttachedToMessageResponse> DownloadFilesAttachedToMessage(
         //    [ActionParameter] ChatIdentifier chatIdentifier, 
@@ -92,7 +125,7 @@ namespace Apps.MicrosoftTeamsBot.Actions
 
         //            resultFiles.Add(file);
         //        }
-            
+
         //        return new DownloadFilesAttachedToMessageResponse { Files = resultFiles.Select(file => new FileDto(file)) };
         //    }
         //    catch (ODataError error)
@@ -154,7 +187,7 @@ namespace Apps.MicrosoftTeamsBot.Actions
         //        throw new Exception(error.Error.Message);
         //    }
         //}
-        
+
         //private async Task<ChatMessage> CreateChatMessage(MSTeamsClient client, SendMessageRequest input)
         //{
         //     var requestBody = new ChatMessage
@@ -194,7 +227,7 @@ namespace Apps.MicrosoftTeamsBot.Actions
         //                var webUrl = Path.GetExtension(attachmentFile.Name) == ".docx"
         //                    ? attachmentFile.WebUrl.Split("&action")[0]
         //                    : attachmentFile.WebUrl; 
-                        
+
         //                requestBody.Attachments.Add(new()
         //                {
         //                    Id = attachmentId,
@@ -213,12 +246,12 @@ namespace Apps.MicrosoftTeamsBot.Actions
         //        throw new Exception(error.Error.Message);
         //    }
         //}
-        
+
         //private async Task<DriveItem> UploadFile(FileReference file)
         //{
         //    const string teamsFilesFolderName = "Microsoft Teams Chat Files";
         //    const int chunkSize = 3932160; 
-        
+
         //    var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
         //    var drive = await client.Me.Drive.GetAsync();
         //    var root = await client.Drives[drive.Id].Root.GetAsync();
@@ -244,7 +277,7 @@ namespace Apps.MicrosoftTeamsBot.Actions
         //            }
         //        }
         //    };
-            
+
         //    var uploadSession = await client.Drives[drive.Id].Items[teamsFilesFolder.Id].ItemWithPath(file.Name)
         //        .CreateUploadSession.PostAsync(uploadSessionRequestBody);
 

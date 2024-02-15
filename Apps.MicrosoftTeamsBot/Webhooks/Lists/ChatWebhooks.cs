@@ -13,10 +13,9 @@ public class ChatWebhooks : BaseWebhookList
     
     [Webhook("On bot mentioned in chat", typeof(MessageSentToChatWebhookHandler), 
         Description = "On bot mentioned in chat")]
-    public async Task<WebhookResponse<ChatMessageDto>> OnMessageSent(WebhookRequest request, 
-        [WebhookParameter] ChatInput chat, [WebhookParameter] SenderInput sender)
+    public async Task<WebhookResponse<ChannelMessageDto>> OnMessageSentToChat(WebhookRequest request, [WebhookParameter] SenderInput sender)
     {
-        return await HandleWebhookRequest<ChatMessageDto>(request);
+        return await HandleWebhookRequest<ChannelMessageDto>(request);
     }
     
     //[Webhook("On message with attachments sent to chat", typeof(MessageSentToChatWebhookHandler), 
