@@ -12,6 +12,7 @@ using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Microsoft.Graph;
 using Microsoft.Graph.Drives.Item.Items.Item.Content;
+using Microsoft.Graph.Drives.Item.Items.Item.CreateLink;
 using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
@@ -41,19 +42,18 @@ public class ChannelActions : BaseInvocable
     public async Task<ChatMessageDto> ReplyToMessageInChannel([ActionParameter] ChannelIdentifier channelIdentifier,
         [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
     {
-        var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
         var teamChannel = JsonConvert.DeserializeObject<TeamChannel>(channelIdentifier.TeamChannelId);
         var botClient = new MSTeamsBotClient(input.BotServiceUrl);
         var botRequest = new MSTeamsBotRequest(
             $"v3/conversations/{teamChannel.ChannelId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}",
             Method.Post, _authenticationCredentialsProviders);
-        var attachments = await CreateChannelAttachments(client, input);
+
         botRequest.AddStringBody(
             JsonConvert.SerializeObject(new ChannelMessageSendDto()
             {
                 Type = "message",
-                Text = input.Message,
-                Attachments = attachments
+                Text = input.AttachmentFile != null ? "" : (input.Message ?? ""),
+                Attachments = await CreateAttachment(input)
             }), DataFormat.Json);
         return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
     }
@@ -73,38 +73,6 @@ public class ChannelActions : BaseInvocable
             text = input.Message
         });
         return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
-    }
-
-    [Action("Reply to message in channel (graph)", Description = "Reply to message in channel (graph)")]
-    public async Task<ChannelMessageGraphDto> ReplyToMessageInChannelGraph([ActionParameter] ChannelIdentifier channelIdentifier,
-        [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
-    {
-        var client = new MSTeamsClient(new List<AuthenticationCredentialsProvider>() { new AuthenticationCredentialsProvider(AuthenticationCredentialsRequestLocation.None, "Authorization", GetBotToken()) });
-        var teamChannel = JsonConvert.DeserializeObject<TeamChannel>(channelIdentifier.TeamChannelId);
-        var requestBody = await CreateChannelMessage(new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders), input);
-
-        try
-        {
-            var sentReply = await client.Teams[teamChannel.TeamId].Channels[teamChannel.ChannelId]
-                .Messages[messageIdentifier.MessageId].Replies.PostAsync(requestBody);
-            return new ChannelMessageGraphDto(sentReply);
-        }
-        catch (ODataError error)
-        {
-            throw new Exception(error.Error.Message);
-        }
-    }
-
-    private string GetBotToken()
-    {
-        var client = new RestClient("https://login.microsoftonline.com");
-        var request = new RestRequest("/botframework.com/oauth2/v2.0/token", Method.Post);
-        request.AlwaysMultipartFormData = true;
-        request.AddParameter("grant_type", "client_credentials");
-        request.AddParameter("client_id", ApplicationConstants.BotClientId);
-        request.AddParameter("client_secret", ApplicationConstants.BotClientSecret);
-        request.AddParameter("scope", ApplicationConstants.BotScope);
-        return JsonConvert.DeserializeObject<NotAuthResponse>(client.ExecuteAsync(request).Result.Content).AccessToken;
     }
 
     //[Action("Get channel message", Description = "Get channel message")]
@@ -204,111 +172,147 @@ public class ChannelActions : BaseInvocable
     //    }
     //}
 
-    private async Task<List<MessageAttachmentDto>> CreateChannelAttachments(MSTeamsClient client, SendMessageRequest input)
+    //private async Task<List<MessageAttachmentDto>> CreateChannelAttachments(MSTeamsClient client, SendMessageRequest input)
+    //{
+    //    var attachments = new List<MessageAttachmentDto>();
+    //    try
+    //    {
+    //        if (input.AttachmentFile is not null || input.OneDriveAttachmentFileId is not null)
+    //        {
+    //            var drive = await client.Me.Drive.GetAsync();
+
+    //            if (input.OneDriveAttachmentFileId is not null)
+    //            {
+    //                var oneDriveAttachmentFile = await client.Drives[drive.Id].Items[input.OneDriveAttachmentFileId].GetAsync();
+    //                var attachmentId = oneDriveAttachmentFile.ETag.Split("{")[1].Split("}")[0];
+    //                attachments.Add(new()
+    //                {
+    //                    ContentType = MediaTypeNames.Application.Octet,
+    //                    ContentUrl = oneDriveAttachmentFile.WebUrl,
+    //                    Name = oneDriveAttachmentFile.Name
+    //                });
+    //                //requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
+    //            }
+
+    //            if (input.AttachmentFile is not null)
+    //            {
+    //                var attachmentFile = await UploadFile(input.AttachmentFile);
+    //                var attachmentId = attachmentFile.ETag.Split("{")[1].Split("}")[0];
+    //                var webUrl = Path.GetExtension(attachmentFile.Name) == ".docx"
+    //                        ? attachmentFile.WebUrl.Split("&action")[0]
+    //                        : attachmentFile.WebUrl;
+
+    //                attachments.Add(new()
+    //                {
+    //                    ContentType = MediaTypeNames.Application.Octet,
+    //                    ContentUrl = webUrl,
+    //                    Name = attachmentFile.Name
+    //                });
+    //                //requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
+    //            }
+    //        }
+
+    //        return attachments;
+    //    }
+    //    catch (ODataError error)
+    //    {
+    //        throw new Exception(error.Error.Message);
+    //    }
+    //}
+
+    //private async Task<ChatMessage> CreateChannelMessage(MSTeamsClient client, SendMessageRequest input)
+    //{
+    //    var requestBody = new ChatMessage
+    //    {
+    //        Body = new ItemBody
+    //        {
+    //            ContentType = BodyType.Html,
+    //            Content = input.Message
+    //        },
+    //        Attachments = new List<ChatMessageAttachment>()
+    //    };
+
+    //    try
+    //    {
+    //        if (input.AttachmentFile is not null || input.OneDriveAttachmentFileId is not null)
+    //        {
+    //            var drive = await client.Me.Drive.GetAsync();
+
+    //            if (input.OneDriveAttachmentFileId is not null)
+    //            {
+    //                var oneDriveAttachmentFile = await client.Drives[drive.Id].Items[input.OneDriveAttachmentFileId].GetAsync();
+    //                var attachmentId = oneDriveAttachmentFile.ETag.Split("{")[1].Split("}")[0];
+    //                requestBody.Attachments.Add(new()
+    //                {
+    //                    Id = attachmentId,
+    //                    ContentType = "reference",
+    //                    ContentUrl = oneDriveAttachmentFile.WebUrl,
+    //                    Name = oneDriveAttachmentFile.Name
+    //                });
+    //                requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
+    //            }
+
+    //            if (input.AttachmentFile is not null)
+    //            {
+    //                var attachmentFile = await UploadFile(input.AttachmentFile);
+    //                var attachmentId = attachmentFile.ETag.Split("{")[1].Split("}")[0];
+    //                var webUrl = Path.GetExtension(attachmentFile.Name) == ".docx"
+    //                        ? attachmentFile.WebUrl.Split("&action")[0]
+    //                        : attachmentFile.WebUrl;
+
+    //                requestBody.Attachments.Add(new()
+    //                {
+    //                    Id = attachmentId,
+    //                    ContentType = "reference",
+    //                    ContentUrl = webUrl,
+    //                    Name = attachmentFile.Name
+    //                });
+    //                requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
+    //            }
+    //        }
+
+    //        return requestBody;
+    //    }
+    //    catch (ODataError error)
+    //    {
+    //        throw new Exception(error.Error.Message);
+    //    }
+    //}
+
+    private async Task<List<MessageAttachmentDto>> CreateAttachment(SendMessageRequest input)
     {
         var attachments = new List<MessageAttachmentDto>();
-        try
+        if (input.AttachmentFile != null)
         {
-            if (input.AttachmentFile is not null || input.OneDriveAttachmentFileId is not null)
+            var uploadedFile = await UploadFile(input.AttachmentFile);
+
+            var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
+            var requestBody = new CreateLinkPostRequestBody
             {
-                var drive = await client.Me.Drive.GetAsync();
-
-                if (input.OneDriveAttachmentFileId is not null)
-                {
-                    var oneDriveAttachmentFile = await client.Drives[drive.Id].Items[input.OneDriveAttachmentFileId].GetAsync();
-                    var attachmentId = oneDriveAttachmentFile.ETag.Split("{")[1].Split("}")[0];
-                    attachments.Add(new()
-                    {
-                        ContentType = MediaTypeNames.Application.Octet,
-                        ContentUrl = oneDriveAttachmentFile.WebUrl,
-                        Name = oneDriveAttachmentFile.Name
-                    });
-                    //requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
-                }
-
-                if (input.AttachmentFile is not null)
-                {
-                    var attachmentFile = await UploadFile(input.AttachmentFile);
-                    var attachmentId = attachmentFile.ETag.Split("{")[1].Split("}")[0];
-                    var webUrl = Path.GetExtension(attachmentFile.Name) == ".docx"
-                            ? attachmentFile.WebUrl.Split("&action")[0]
-                            : attachmentFile.WebUrl;
-
-                    attachments.Add(new()
-                    {
-                        ContentType = MediaTypeNames.Application.Octet,
-                        ContentUrl = webUrl,
-                        Name = attachmentFile.Name
-                    });
-                    //requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
-                }
-            }
-
-            return attachments;
-        }
-        catch (ODataError error)
-        {
-            throw new Exception(error.Error.Message);
-        }
-    }
-
-    private async Task<ChatMessage> CreateChannelMessage(MSTeamsClient client, SendMessageRequest input)
-    {
-        var requestBody = new ChatMessage
-        {
-            Body = new ItemBody
+                Type = "download",
+            };
+            var drive = await client.Me.Drive.GetAsync();
+            var result = await client.Drives[drive.Id].Items[uploadedFile.Id].CreateLink.PostAsync(requestBody);
+            
+            attachments.Add(new MessageAttachmentDto()
             {
-                ContentType = BodyType.Html,
-                Content = input.Message
-            },
-            Attachments = new List<ChatMessageAttachment>()
-        };
-
-        try
-        {
-            if (input.AttachmentFile is not null || input.OneDriveAttachmentFileId is not null)
-            {
-                var drive = await client.Me.Drive.GetAsync();
-
-                if (input.OneDriveAttachmentFileId is not null)
+                ContentType = "application/vnd.microsoft.card.hero",
+                Content = new Content()
                 {
-                    var oneDriveAttachmentFile = await client.Drives[drive.Id].Items[input.OneDriveAttachmentFileId].GetAsync();
-                    var attachmentId = oneDriveAttachmentFile.ETag.Split("{")[1].Split("}")[0];
-                    requestBody.Attachments.Add(new()
+                    Text = input.Message ?? "",
+                    Buttons = new List<Button>()
                     {
-                        Id = attachmentId,
-                        ContentType = "reference",
-                        ContentUrl = oneDriveAttachmentFile.WebUrl,
-                        Name = oneDriveAttachmentFile.Name
-                    });
-                    requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
+                        new Button()
+                        {
+                            Type = "openUrl",
+                            Title = input.AttachmentFile.Name,
+                            Value = result.Link.WebUrl
+                        }
+                    }
                 }
-
-                if (input.AttachmentFile is not null)
-                {
-                    var attachmentFile = await UploadFile(input.AttachmentFile);
-                    var attachmentId = attachmentFile.ETag.Split("{")[1].Split("}")[0];
-                    var webUrl = Path.GetExtension(attachmentFile.Name) == ".docx"
-                            ? attachmentFile.WebUrl.Split("&action")[0]
-                            : attachmentFile.WebUrl;
-
-                    requestBody.Attachments.Add(new()
-                    {
-                        Id = attachmentId,
-                        ContentType = "reference",
-                        ContentUrl = webUrl,
-                        Name = attachmentFile.Name
-                    });
-                    requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
-                }
-            }
-
-            return requestBody;
+            });
         }
-        catch (ODataError error)
-        {
-            throw new Exception(error.Error.Message);
-        }
+        return attachments;
     }
 
     private async Task<DriveItem> UploadFile(FileReference file)
