@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using Apps.MicrosoftTeamsBot.Webhooks.Lists.ItemGetters;
 using Apps.MicrosoftTeamsBot.Webhooks.Payload;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -18,8 +17,7 @@ public class BaseWebhookList : BaseInvocable
         AuthenticationCredentialsProviders = invocationContext.AuthenticationCredentialsProviders;
     }
     
-    protected async Task<WebhookResponse<T>> HandleWebhookRequest<T>(WebhookRequest request,
-        ItemGetter<T> itemGetter) where T: class
+    protected async Task<WebhookResponse<T>> HandleWebhookRequest<T>(WebhookRequest request) where T: class
     {
         var eventPayload = JsonConvert.DeserializeObject<T>(request.Body.ToString(), new JsonSerializerSettings
         {

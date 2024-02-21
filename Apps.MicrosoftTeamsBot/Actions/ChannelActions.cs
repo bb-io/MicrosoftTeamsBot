@@ -16,7 +16,9 @@ using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Newtonsoft.Json;
+using RestSharp;
 using System.Net.Mime;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Apps.MicrosoftTeamsBot.Actions;
 
@@ -33,7 +35,37 @@ public class ChannelActions : BaseInvocable
         _fileManagementClient = fileManagementClient;
     }
 
+    [Action("Reply to message in channel", Description = "Reply to message in channel")]
+    public async Task<ChatMessageDto> ReplyToMessageInChannel([ActionParameter] ChannelIdentifier channelIdentifier,
+        [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
+    {
+        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        var botRequest = new MSTeamsBotRequest(
+            $"v3/conversations/{channelIdentifier.TeamChannelId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}",
+            Method.Post, _authenticationCredentialsProviders);
+        botRequest.AddJsonBody(new
+        {
+            type = "message",
+            text = input.Message
+        });
+        return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
+    }
 
+    [Action("Send message to channel", Description = "Send message to channel")]
+    public async Task<ChatMessageDto> SendMessageToChannel([ActionParameter] ChannelIdentifier channelIdentifier,
+        [ActionParameter] SendMessageRequest input)
+    {
+        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        var botRequest = new MSTeamsBotRequest(
+            $"v3/conversations/{channelIdentifier.TeamChannelId}/activities",
+            Method.Post, _authenticationCredentialsProviders);
+        botRequest.AddJsonBody(new
+        {
+            type = "message",
+            text = input.Message
+        });
+        return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
+    }
 
     //[Action("Get channel message", Description = "Get channel message")]
     //public async Task<ChannelMessageDto> GetChannelMessage([ActionParameter] ChannelIdentifier channelIdentifier, 
@@ -53,7 +85,7 @@ public class ChannelActions : BaseInvocable
     //        throw new Exception(error.Error.Message);
     //    }
     //}
-    
+
     //[Action("Download files attached to channel message", Description = "Download files attached to channel message")]
     //public async Task<DownloadFilesAttachedToMessageResponse> DownloadFilesAttachedToMessage(
     //    [ActionParameter] ChannelIdentifier channelIdentifier, 
@@ -83,7 +115,7 @@ public class ChannelActions : BaseInvocable
 
     //            resultFiles.Add(file);
     //        }
-            
+
     //        return new DownloadFilesAttachedToMessageResponse { Files = resultFiles.Select(file => new FileDto(file)) };
     //    }
     //    catch (ODataError error)
@@ -91,7 +123,7 @@ public class ChannelActions : BaseInvocable
     //        throw new Exception(error.Error.Message);
     //    }
     //}
-    
+
     //[Action("Send message to channel", Description = "Send message to channel")]
     //public async Task<ChannelMessageDto> SendMessageToChannel([ActionParameter] ChannelIdentifier channelIdentifier, 
     //    [ActionParameter] SendMessageRequest input)
@@ -111,7 +143,7 @@ public class ChannelActions : BaseInvocable
     //        throw new Exception(error.Error.Message);
     //    }
     //}
-    
+
     //[Action("Reply to message in channel", Description = "Reply to message in channel")]
     //public async Task<ChannelMessageDto> ReplyToMessageInChannel([ActionParameter] ChannelIdentifier channelIdentifier, 
     //    [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
@@ -190,12 +222,12 @@ public class ChannelActions : BaseInvocable
     //        throw new Exception(error.Error.Message);
     //    }
     //} 
-    
+
     //private async Task<DriveItem> UploadFile(FileReference file)
     //{
     //    const string teamsFilesFolderName = "Microsoft Teams Chat Files";
     //    const int chunkSize = 3932160; 
-        
+
     //    var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
     //    var drive = await client.Me.Drive.GetAsync();
     //    var root = await client.Drives[drive.Id].Root.GetAsync();
@@ -221,7 +253,7 @@ public class ChannelActions : BaseInvocable
     //            }
     //        }
     //    };
-            
+
     //    var uploadSession = await client.Drives[drive.Id].Items[teamsFilesFolder.Id].ItemWithPath(file.Name)
     //        .CreateUploadSession.PostAsync(uploadSessionRequestBody);
 

@@ -4,7 +4,7 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.MicrosoftTeamsBot.Webhooks.Inputs;
 
-public class ChannelInput : IWebhookHandlerInput
+public class ChannelInput
 {
     [Display("Channel")]
     [DataSource(typeof(ChannelHandler))]
