@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Product>Microsoft Teams Bot</Product>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <Description>The messaging app</Description>
     <AssemblyName>Apps.MicrosoftTeamsBot</AssemblyName>
   </PropertyGroup>

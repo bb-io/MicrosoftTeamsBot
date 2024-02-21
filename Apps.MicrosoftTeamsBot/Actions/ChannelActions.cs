@@ -81,7 +81,7 @@ public class ChannelActions : BaseInvocable
     {
         var client = new MSTeamsClient(new List<AuthenticationCredentialsProvider>() { new AuthenticationCredentialsProvider(AuthenticationCredentialsRequestLocation.None, "Authorization", GetBotToken()) });
         var teamChannel = JsonConvert.DeserializeObject<TeamChannel>(channelIdentifier.TeamChannelId);
-        var requestBody = await CreateChannelMessage(client, input);
+        var requestBody = await CreateChannelMessage(new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders), input);
 
         try
         {
