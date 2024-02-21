@@ -46,7 +46,14 @@ public class ChannelActions : BaseInvocable
         botRequest.AddJsonBody(new
         {
             type = "message",
-            text = input.Message
+            text = input.Message,
+            attachments = new[]{
+                new {
+                    contentType = "image/jpg",
+                    contentUrl = "https://www.publicdomainpictures.net/pictures/30000/t2/duck-on-a-rock.jpg",
+                    name = "duck-on-a-rock.jpg"
+                }
+            },
         });
         return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
     }
