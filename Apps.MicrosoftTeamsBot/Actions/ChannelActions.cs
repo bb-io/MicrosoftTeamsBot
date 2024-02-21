@@ -334,7 +334,7 @@ public class ChannelActions : BaseInvocable
                 Folder = new Folder()
             });
 
-        using var stream = await _fileManagementClient.DownloadAsync(file);
+        
         var uploadSessionRequestBody = new CreateUploadSessionPostRequestBody
         {
             Item = new DriveItemUploadableProperties
@@ -348,8 +348,11 @@ public class ChannelActions : BaseInvocable
 
         var uploadSession = await client.Drives[drive.Id].Items[teamsFilesFolder.Id].ItemWithPath(file.Name)
             .CreateUploadSession.PostAsync(uploadSessionRequestBody);
+        using var stream = await _fileManagementClient.DownloadAsync(file);
+        using var memoryStream = new MemoryStream();
+        stream.CopyTo(memoryStream);
 
-        var fileUploadTask = new LargeFileUploadTask<DriveItem>(uploadSession, stream, chunkSize, client.RequestAdapter);
+        var fileUploadTask = new LargeFileUploadTask<DriveItem>(uploadSession, memoryStream, chunkSize, client.RequestAdapter);
         var uploadResult = await fileUploadTask.UploadAsync();
         return uploadResult.ItemResponse;
     }
