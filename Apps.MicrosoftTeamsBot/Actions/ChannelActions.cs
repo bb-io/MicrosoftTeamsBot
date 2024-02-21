@@ -75,6 +75,38 @@ public class ChannelActions : BaseInvocable
         return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
     }
 
+    [Action("Reply to message in channel (graph)", Description = "Reply to message in channel (graph)")]
+    public async Task<ChannelMessageGraphDto> ReplyToMessageInChannelGraph([ActionParameter] ChannelIdentifier channelIdentifier,
+        [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
+    {
+        var client = new MSTeamsClient(new List<AuthenticationCredentialsProvider>() { new AuthenticationCredentialsProvider(AuthenticationCredentialsRequestLocation.None, "Authorization", GetBotToken()) });
+        var teamChannel = JsonConvert.DeserializeObject<TeamChannel>(channelIdentifier.TeamChannelId);
+        var requestBody = await CreateChannelMessage(client, input);
+
+        try
+        {
+            var sentReply = await client.Teams[teamChannel.TeamId].Channels[teamChannel.ChannelId]
+                .Messages[messageIdentifier.MessageId].Replies.PostAsync(requestBody);
+            return new ChannelMessageGraphDto(sentReply);
+        }
+        catch (ODataError error)
+        {
+            throw new Exception(error.Error.Message);
+        }
+    }
+
+    private string GetBotToken()
+    {
+        var client = new RestClient("https://login.microsoftonline.com");
+        var request = new RestRequest("/botframework.com/oauth2/v2.0/token", Method.Post);
+        request.AlwaysMultipartFormData = true;
+        request.AddParameter("grant_type", "client_credentials");
+        request.AddParameter("client_id", ApplicationConstants.BotClientId);
+        request.AddParameter("client_secret", ApplicationConstants.BotClientSecret);
+        request.AddParameter("scope", ApplicationConstants.BotScope);
+        return JsonConvert.DeserializeObject<NotAuthResponse>(client.ExecuteAsync(request).Result.Content).AccessToken;
+    }
+
     //[Action("Get channel message", Description = "Get channel message")]
     //public async Task<ChannelMessageDto> GetChannelMessage([ActionParameter] ChannelIdentifier channelIdentifier, 
     //    [ActionParameter] MessageIdentifier messageIdentifier)
@@ -213,6 +245,65 @@ public class ChannelActions : BaseInvocable
             }
 
             return attachments;
+        }
+        catch (ODataError error)
+        {
+            throw new Exception(error.Error.Message);
+        }
+    }
+
+    private async Task<ChatMessage> CreateChannelMessage(MSTeamsClient client, SendMessageRequest input)
+    {
+        var requestBody = new ChatMessage
+        {
+            Body = new ItemBody
+            {
+                ContentType = BodyType.Html,
+                Content = input.Message
+            },
+            Attachments = new List<ChatMessageAttachment>()
+        };
+
+        try
+        {
+            if (input.AttachmentFile is not null || input.OneDriveAttachmentFileId is not null)
+            {
+                var drive = await client.Me.Drive.GetAsync();
+
+                if (input.OneDriveAttachmentFileId is not null)
+                {
+                    var oneDriveAttachmentFile = await client.Drives[drive.Id].Items[input.OneDriveAttachmentFileId].GetAsync();
+                    var attachmentId = oneDriveAttachmentFile.ETag.Split("{")[1].Split("}")[0];
+                    requestBody.Attachments.Add(new()
+                    {
+                        Id = attachmentId,
+                        ContentType = "reference",
+                        ContentUrl = oneDriveAttachmentFile.WebUrl,
+                        Name = oneDriveAttachmentFile.Name
+                    });
+                    requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
+                }
+
+                if (input.AttachmentFile is not null)
+                {
+                    var attachmentFile = await UploadFile(input.AttachmentFile);
+                    var attachmentId = attachmentFile.ETag.Split("{")[1].Split("}")[0];
+                    var webUrl = Path.GetExtension(attachmentFile.Name) == ".docx"
+                            ? attachmentFile.WebUrl.Split("&action")[0]
+                            : attachmentFile.WebUrl;
+
+                    requestBody.Attachments.Add(new()
+                    {
+                        Id = attachmentId,
+                        ContentType = "reference",
+                        ContentUrl = webUrl,
+                        Name = attachmentFile.Name
+                    });
+                    requestBody.Body.Content += $"<attachment id=\"{attachmentId}\"></attachment>";
+                }
+            }
+
+            return requestBody;
         }
         catch (ODataError error)
         {
