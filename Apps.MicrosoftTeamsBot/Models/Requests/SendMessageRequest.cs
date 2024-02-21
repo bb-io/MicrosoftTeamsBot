@@ -12,10 +12,10 @@ public class SendMessageRequest
     [Display("Bot service url", Description = "Service url could be found in event output parameters")]
     public string BotServiceUrl { get; set; }
 
-    //[Display("Attachment file")]
-    //public FileReference? AttachmentFile { get; set; }
+    [Display("Attachment file")]
+    public FileReference? AttachmentFile { get; set; }
 
-    //[Display("Attachment file from OneDrive")]
-    //[DataSource(typeof(OneDriveFileHandler))]
-    //public string? OneDriveAttachmentFileId { get; set; }
+    [Display("Attachment file from OneDrive")]
+    [DataSource(typeof(OneDriveFileHandler))]
+    public string? OneDriveAttachmentFileId { get; set; }
 }

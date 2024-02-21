@@ -11,7 +11,7 @@ public class ChannelHandler : BaseInvocable, IAsyncDataSourceHandler
     {    
     }
 
-    public async Task<Dictionary<string, string>> GetDataAsync(DataSourceContext context, 
+    public async Task<Dictionary<string, string>> GetDataAsync(DataSourceContext context,
         CancellationToken cancellationToken)
     {
         var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
@@ -24,7 +24,7 @@ public class ChannelHandler : BaseInvocable, IAsyncDataSourceHandler
 
             foreach (var channel in teamChannels.Value)
             {
-                var key = channel.Id;
+                var key = JsonConvert.SerializeObject(new TeamChannel { TeamId = team.Id, ChannelId = channel.Id });
                 channels[key] = $"{channel.DisplayName} ({team.DisplayName} team)";
             }
         }
