@@ -285,15 +285,6 @@ public class ChannelActions : BaseInvocable
         if (input.AttachmentFile != null)
         {
             var uploadedFile = await UploadFile(input.AttachmentFile);
-
-            var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
-            var requestBody = new CreateLinkPostRequestBody
-            {
-                Type = "embed",
-            };
-            var drive = await client.Me.Drive.GetAsync();
-            var result = await client.Drives[drive.Id].Items[uploadedFile.Id].CreateLink.PostAsync(requestBody);
-            
             attachments.Add(new MessageAttachmentDto()
             {
                 ContentType = "application/vnd.microsoft.card.hero",
@@ -306,7 +297,7 @@ public class ChannelActions : BaseInvocable
                         {
                             Type = "openUrl",
                             Title = input.AttachmentFile.Name,
-                            Value = result.Link.WebUrl.Replace("embed", "download")
+                            Value = uploadedFile.WebUrl
                         }
                     }
                 }
