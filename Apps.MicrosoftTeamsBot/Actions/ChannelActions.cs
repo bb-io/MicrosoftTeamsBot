@@ -289,7 +289,7 @@ public class ChannelActions : BaseInvocable
             var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
             var requestBody = new CreateLinkPostRequestBody
             {
-                Type = "download",
+                Type = "embed",
             };
             var drive = await client.Me.Drive.GetAsync();
             var result = await client.Drives[drive.Id].Items[uploadedFile.Id].CreateLink.PostAsync(requestBody);
@@ -306,7 +306,7 @@ public class ChannelActions : BaseInvocable
                         {
                             Type = "openUrl",
                             Title = input.AttachmentFile.Name,
-                            Value = result.Link.WebUrl
+                            Value = result.Link.WebUrl.Replace("embed", "download")
                         }
                     }
                 }
