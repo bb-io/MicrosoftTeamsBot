@@ -1,18 +1,11 @@
 ﻿using Apps.MicrosoftTeamsBot.Dtos;
 using Apps.MicrosoftTeamsBot.Models.Identifiers;
 using Apps.MicrosoftTeamsBot.Models.Requests;
-using Apps.MicrosoftTeamsBot.Models.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using Microsoft.Graph;
-using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
-using Microsoft.Graph.Models;
-using Microsoft.Graph.Models.ODataErrors;
 using RestSharp;
 
 namespace Apps.MicrosoftTeamsBot.Actions
