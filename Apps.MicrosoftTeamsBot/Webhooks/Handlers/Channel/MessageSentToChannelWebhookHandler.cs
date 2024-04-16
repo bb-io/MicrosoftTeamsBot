@@ -1,5 +1,4 @@
 ﻿using Apps.MicrosoftTeamsBot.DynamicHandlers;
-using Apps.MicrosoftTeamsBot.Models.Identifiers;
 using Apps.MicrosoftTeamsBot.Webhooks.Inputs;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Webhooks;

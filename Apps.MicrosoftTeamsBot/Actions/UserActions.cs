@@ -1,11 +1,6 @@
-﻿using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Authentication;
+﻿using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common;
-using Apps.MicrosoftTeamsBot.Dtos;
-using Apps.MicrosoftTeamsBot.Models.Identifiers;
-using Apps.MicrosoftTeamsBot.Models.Responses;
 using Blackbird.Applications.Sdk.Common.Invocation;
-using Microsoft.Graph.Models.ODataErrors;
 
 namespace Apps.MicrosoftTeamsBot.Actions
 {

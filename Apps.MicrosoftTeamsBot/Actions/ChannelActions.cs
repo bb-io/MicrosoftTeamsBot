@@ -11,17 +11,11 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Microsoft.Graph;
-using Microsoft.Graph.Drives.Item.Items.Item.Content;
-using Microsoft.Graph.Drives.Item.Items.Item.CreateLink;
 using Microsoft.Graph.Drives.Item.Items.Item.CreateUploadSession;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Newtonsoft.Json;
 using RestSharp;
-using System.Net.Mail;
-using System.Net.Mime;
-using System.Threading.Channels;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Apps.MicrosoftTeamsBot.Actions;
 
