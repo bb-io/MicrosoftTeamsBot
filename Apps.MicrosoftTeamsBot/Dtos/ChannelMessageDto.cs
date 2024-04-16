@@ -1,7 +1,4 @@
-﻿using Apps.MicrosoftTeamsBot.DynamicHandlers;
-using Blackbird.Applications.Sdk.Common;
-using Microsoft.Graph.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Apps.MicrosoftTeamsBot.Dtos;
 

@@ -1,9 +1,7 @@
-﻿using Apps.MicrosoftTeamsBot.Webhooks.Inputs;
-using Blackbird.Applications.Sdk.Common;
+﻿using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Webhooks;
-using Microsoft.Graph.Models;
 
 namespace Apps.MicrosoftTeamsBot.Webhooks.Handlers;
 

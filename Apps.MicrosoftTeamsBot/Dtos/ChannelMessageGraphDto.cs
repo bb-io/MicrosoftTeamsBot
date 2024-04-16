@@ -2,11 +2,6 @@
 using Blackbird.Applications.Sdk.Common;
 using Microsoft.Graph.Models;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Apps.MicrosoftTeamsBot.Dtos
 {

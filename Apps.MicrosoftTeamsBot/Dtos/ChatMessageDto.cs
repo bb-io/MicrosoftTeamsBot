@@ -1,5 +1,4 @@
 ﻿using Blackbird.Applications.Sdk.Common;
-using Microsoft.Graph.Models;
 
 namespace Apps.MicrosoftTeamsBot.Dtos
 {
