@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Product>Microsoft Teams Bot</Product>
-    <Version>1.0.11</Version>
+    <Product>Microsoft 365 Teams Bot</Product>
+    <Version>1.0.12</Version>
     <Description>The messaging app</Description>
     <AssemblyName>Apps.MicrosoftTeamsBot</AssemblyName>
   </PropertyGroup>
