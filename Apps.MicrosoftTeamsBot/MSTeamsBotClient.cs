@@ -8,8 +8,20 @@ namespace Apps.MicrosoftTeamsBot
 {
     public class MSTeamsBotClient : BlackBirdRestClient
     {
-        public MSTeamsBotClient(string botServiceEndpoint) : base(new RestClientOptions() { BaseUrl = new Uri(botServiceEndpoint) })
+        public MSTeamsBotClient(string botServiceEndpoint) : base(new RestClientOptions() { BaseUrl = CreateUri(botServiceEndpoint) })
         {
+        }
+
+        private static Uri CreateUri(string uriString)
+        {
+            try
+            {
+                return new Uri(uriString);
+            }
+            catch (UriFormatException ex)
+            {
+                throw new PluginApplicationException($"Invalid Bot Service URL format: {ex.Message}. Please check your input properties and try again");
+            }
         }
 
         protected override Exception ConfigureErrorException(RestResponse response)
