@@ -20,7 +20,7 @@ namespace Apps.MicrosoftTeamsBot
             }
             catch (UriFormatException ex)
             {
-                throw new PluginApplicationException($"Invalid Bot Service URL format: {ex.Message}. Please check your input properties and try again");
+                throw new PluginMisconfigurationException($"Invalid Bot Service URL format: {ex.Message}. Please check your input properties and try again");
             }
         }
 
