@@ -40,7 +40,7 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
 
         private static string GetTenant(Dictionary<string, string> values)
         {
-            if (values.TryGetValue(global::Apps.MicrosoftTeamsBot.CredNames.TenantId, out var tenantId) &&
+            if (values.TryGetValue(CredNames.TenantId, out var tenantId) &&
                 !string.IsNullOrWhiteSpace(tenantId))
                 return tenantId;
 
@@ -49,7 +49,7 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
 
         private static string GetClientId(Dictionary<string, string> values)
         {
-            if (values.TryGetValue(global::Apps.MicrosoftTeamsBot.CredNames.ClientId, out var clientId) &&
+            if (values.TryGetValue(CredNames.ClientId, out var clientId) &&
                 !string.IsNullOrWhiteSpace(clientId))
                 return clientId;
 
