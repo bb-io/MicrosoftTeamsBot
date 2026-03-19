@@ -18,7 +18,7 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
             var tenantId = GetTenant(values);
             var oauthUrl = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize";
 
-            var adminPermissionRequired = values.First(v => v.Key == global::Apps.MicrosoftTeamsBot.CredNames.AdminPermissionRequired).Value.ToLower();
+            var adminPermissionRequired = values.First(v => v.Key == CredNames.AdminPermissionRequired).Value.ToLower();
             var requiredScope = adminPermissionRequired == "yes"
                 ? ApplicationConstants.TeamsFullScope
                 : ApplicationConstants.TeamsLimitedScope;
