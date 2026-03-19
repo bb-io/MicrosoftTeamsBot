@@ -14,15 +14,20 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
         public string GetAuthorizationUrl(Dictionary<string, string> values)
         {
             string bridgeOauthUrl = $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/oauth";
-            const string oauthUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
-            var adminPermissionRequired = values.First(v => v.Key == "AdminPermissionRequired").Value.ToLower();
+
+            var tenantId = GetTenant(values);
+            var oauthUrl = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize";
+
+            var adminPermissionRequired = values.First(v => v.Key == global::Apps.MicrosoftTeamsBot.CredNames.AdminPermissionRequired).Value.ToLower();
             var requiredScope = adminPermissionRequired == "yes"
                 ? ApplicationConstants.TeamsFullScope
                 : ApplicationConstants.TeamsLimitedScope;
+
+            var clientId = GetClientId(values);
             
             var parameters = new Dictionary<string, string>
             {
-                { "client_id", ApplicationConstants.TeamsClientId },
+                { "client_id", clientId },
                 { "redirect_uri", $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/AuthorizationCode" },
                 { "scope", requiredScope },
                 { "state", values["state"] },
@@ -31,6 +36,24 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
                 { "actual_redirect_uri", InvocationContext.UriInfo.AuthorizationCodeRedirectUri.ToString() },
             };
             return QueryHelpers.AddQueryString(bridgeOauthUrl, parameters);
+        }
+
+        private static string GetTenant(Dictionary<string, string> values)
+        {
+            if (values.TryGetValue(global::Apps.MicrosoftTeamsBot.CredNames.TenantId, out var tenantId) &&
+                !string.IsNullOrWhiteSpace(tenantId))
+                return tenantId;
+
+            return "common";
+        }
+
+        private static string GetClientId(Dictionary<string, string> values)
+        {
+            if (values.TryGetValue(global::Apps.MicrosoftTeamsBot.CredNames.ClientId, out var clientId) &&
+                !string.IsNullOrWhiteSpace(clientId))
+                return clientId;
+
+            return ApplicationConstants.TeamsClientId;
         }
     }
 }

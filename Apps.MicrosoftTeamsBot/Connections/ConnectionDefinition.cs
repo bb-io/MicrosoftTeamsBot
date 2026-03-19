@@ -10,12 +10,43 @@ namespace Apps.MicrosoftTeamsBot.Connections
         {
             new()
             {
-                Name = "OAuth",
+                Name = global::Apps.MicrosoftTeamsBot.ConnectionTypes.OAuth,
+                DisplayName = "OAuth2",
                 AuthenticationType = ConnectionAuthenticationType.OAuth2,
                 ConnectionUsage = ConnectionUsage.Actions,
                 ConnectionProperties = new List<ConnectionProperty>
                 {
-                    new("AdminPermissionRequired") { DisplayName = "Channel messages scope required" }
+                    new(global::Apps.MicrosoftTeamsBot.CredNames.AdminPermissionRequired)
+                    {
+                        DisplayName = "Channel messages scope required",
+                        DataItems =
+                        [
+                            new("yes", "Yes"),
+                            new("no", "No")
+                        ]
+                    }
+                }
+            },
+            new()
+            {
+                Name = global::Apps.MicrosoftTeamsBot.ConnectionTypes.OAuthCustomApp,
+                DisplayName = "OAuth2 (Client app)",
+                AuthenticationType = ConnectionAuthenticationType.OAuth2,
+                ConnectionUsage = ConnectionUsage.Actions,
+                ConnectionProperties = new List<ConnectionProperty>
+                {
+                    new(global::Apps.MicrosoftTeamsBot.CredNames.AdminPermissionRequired)
+                    {
+                        DisplayName = "Channel messages scope required",
+                        DataItems =
+                        [
+                            new("yes", "Yes"),
+                            new("no", "No")
+                        ]
+                    },
+                    new(global::Apps.MicrosoftTeamsBot.CredNames.ClientId) { DisplayName = "Application (client) ID" },
+                    new(global::Apps.MicrosoftTeamsBot.CredNames.TenantId) { DisplayName = "Directory (tenant) ID" },
+                    new(global::Apps.MicrosoftTeamsBot.CredNames.ClientSecret) { DisplayName = "Client secret", Sensitive = true }
                 }
             }
         };
