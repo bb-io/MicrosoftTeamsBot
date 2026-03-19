@@ -9,7 +9,6 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
     public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService, ITokenRefreshable
     {
         private const string ExpiresAtKeyName = "expires_at";
-
         public OAuth2TokenService(InvocationContext invocationContext) : base(invocationContext)
         {
         }
@@ -74,7 +73,7 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
 
         private static string GetTenant(Dictionary<string, string> values)
         {
-            if (values.TryGetValue(global::Apps.MicrosoftTeamsBot.CredNames.TenantId, out var tenantId) &&
+            if (values.TryGetValue(CredNames.TenantId, out var tenantId) &&
                 !string.IsNullOrWhiteSpace(tenantId))
                 return tenantId;
 
@@ -83,7 +82,7 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
 
         private static string GetClientId(Dictionary<string, string> values)
         {
-            if (values.TryGetValue(global::Apps.MicrosoftTeamsBot.CredNames.ClientId, out var clientId) &&
+            if (values.TryGetValue(CredNames.ClientId, out var clientId) &&
                 !string.IsNullOrWhiteSpace(clientId))
                 return clientId;
 
@@ -92,7 +91,7 @@ namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
 
         private static string GetClientSecret(Dictionary<string, string> values)
         {
-            if (values.TryGetValue(global::Apps.MicrosoftTeamsBot.CredNames.ClientSecret, out var clientSecret) &&
+            if (values.TryGetValue(CredNames.ClientSecret, out var clientSecret) &&
                 !string.IsNullOrWhiteSpace(clientSecret))
                 return clientSecret;
 

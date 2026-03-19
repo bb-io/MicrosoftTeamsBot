@@ -16,7 +16,7 @@ namespace Apps.MicrosoftTeamsBot.Connections
                 ConnectionUsage = ConnectionUsage.Actions,
                 ConnectionProperties = new List<ConnectionProperty>
                 {
-                    new(global::Apps.MicrosoftTeamsBot.CredNames.AdminPermissionRequired)
+                    new(CredNames.AdminPermissionRequired)
                     {
                         DisplayName = "Channel messages scope required",
                         DataItems =
@@ -29,13 +29,13 @@ namespace Apps.MicrosoftTeamsBot.Connections
             },
             new()
             {
-                Name = global::Apps.MicrosoftTeamsBot.ConnectionTypes.OAuthCustomApp,
+                Name = ConnectionTypes.OAuthCustomApp,
                 DisplayName = "OAuth2 (Client app)",
                 AuthenticationType = ConnectionAuthenticationType.OAuth2,
                 ConnectionUsage = ConnectionUsage.Actions,
                 ConnectionProperties = new List<ConnectionProperty>
                 {
-                    new(global::Apps.MicrosoftTeamsBot.CredNames.AdminPermissionRequired)
+                    new(CredNames.AdminPermissionRequired)
                     {
                         DisplayName = "Channel messages scope required",
                         DataItems =
@@ -44,9 +44,9 @@ namespace Apps.MicrosoftTeamsBot.Connections
                             new("no", "No")
                         ]
                     },
-                    new(global::Apps.MicrosoftTeamsBot.CredNames.ClientId) { DisplayName = "Application (client) ID" },
-                    new(global::Apps.MicrosoftTeamsBot.CredNames.TenantId) { DisplayName = "Directory (tenant) ID" },
-                    new(global::Apps.MicrosoftTeamsBot.CredNames.ClientSecret) { DisplayName = "Client secret", Sensitive = true }
+                    new(CredNames.ClientId) { DisplayName = "Application (client) ID" },
+                    new(CredNames.TenantId) { DisplayName = "Directory (tenant) ID" },
+                    new(CredNames.ClientSecret) { DisplayName = "Client secret", Sensitive = true }
                 }
             }
         };
