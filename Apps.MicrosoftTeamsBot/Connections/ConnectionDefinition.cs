@@ -5,14 +5,13 @@ namespace Apps.MicrosoftTeamsBot.Connections;
 
 public class ConnectionDefinition : IConnectionDefinition
 {
-    public IEnumerable<ConnectionPropertyGroup> ConnectionPropertyGroups => new List<ConnectionPropertyGroup>()
+    public IEnumerable<ConnectionPropertyGroup> ConnectionPropertyGroups => new List<ConnectionPropertyGroup>
     {
         new()
         {
             Name = ConnectionTypes.OAuth,
             DisplayName = "OAuth2",
             AuthenticationType = ConnectionAuthenticationType.OAuth2,
-            ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties =
             [
                 new(CredNames.AdminPermissionRequired)
@@ -31,7 +30,6 @@ public class ConnectionDefinition : IConnectionDefinition
             Name = ConnectionTypes.OAuthCustomApp,
             DisplayName = "OAuth2 (Client app)",
             AuthenticationType = ConnectionAuthenticationType.OAuth2,
-            ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties =
             [
                 new(CredNames.AdminPermissionRequired)
@@ -53,7 +51,6 @@ public class ConnectionDefinition : IConnectionDefinition
             Name = ConnectionTypes.Application,
             DisplayName = "Application",
             AuthenticationType = ConnectionAuthenticationType.Undefined,
-            ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties =
             [
                 new(CredNames.ClientId) { DisplayName = "Application (client) ID" },
@@ -66,47 +63,32 @@ public class ConnectionDefinition : IConnectionDefinition
     public IEnumerable<AuthenticationCredentialsProvider> CreateAuthorizationCredentialsProviders(
         Dictionary<string, string> values)
     {
-        if (values.TryGetValue("access_token", out var token))
+        var providers = values
+            .Select(x => new AuthenticationCredentialsProvider(
+                AuthenticationCredentialsRequestLocation.None,
+                x.Key,
+                x.Value))
+            .ToList();
+
+        var connectionType = values[nameof(ConnectionPropertyGroup)] switch
         {
-            yield return new AuthenticationCredentialsProvider(
+            var ct when ConnectionTypes.SupportedConnectionTypes.Contains(ct) => ct,
+            _ => throw new Exception($"Unknown connection type: {values[nameof(ConnectionPropertyGroup)]}")
+        };
+
+        providers.Add(new AuthenticationCredentialsProvider(
+            AuthenticationCredentialsRequestLocation.None,
+            CredNames.ConnectionType,
+            connectionType));
+
+        if (values.TryGetValue("access_token", out var accessToken))
+        {
+            providers.Add(new AuthenticationCredentialsProvider(
                 AuthenticationCredentialsRequestLocation.None,
                 "Authorization",
-                token);
+                accessToken));
         }
 
-        if (values.TryGetValue(CredNames.ClientId, out var clientId))
-        {
-            yield return new AuthenticationCredentialsProvider(
-                AuthenticationCredentialsRequestLocation.None,
-                CredNames.ClientId,
-                clientId);
-        }
-
-        if (values.TryGetValue(CredNames.TenantId, out var tenantId))
-        {
-            yield return new AuthenticationCredentialsProvider(
-                AuthenticationCredentialsRequestLocation.None,
-                CredNames.TenantId,
-                tenantId);
-        }
-
-        if (values.TryGetValue(CredNames.ClientSecret, out var clientSecret))
-        {
-            yield return new AuthenticationCredentialsProvider(
-                AuthenticationCredentialsRequestLocation.None,
-                CredNames.ClientSecret,
-                clientSecret);
-        }
-
-        if (values.ContainsKey(CredNames.ClientId) &&
-            values.ContainsKey(CredNames.ClientSecret) &&
-            values.ContainsKey(CredNames.TenantId) &&
-            !values.ContainsKey("access_token"))
-        {
-            yield return new AuthenticationCredentialsProvider(
-                AuthenticationCredentialsRequestLocation.None,
-                CredNames.ConnectionType,
-                ConnectionTypes.Application);
-        }
+        return providers;
     }
 }
