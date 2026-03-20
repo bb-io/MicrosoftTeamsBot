@@ -1,4 +1,5 @@
-﻿using Blackbird.Applications.Sdk.Common.Authentication;
+using Apps.MicrosoftTeamsBot.Auth;
+using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Connections;
 
 namespace Apps.MicrosoftTeamsBot.Connections;
@@ -6,14 +7,23 @@ namespace Apps.MicrosoftTeamsBot.Connections;
 public class ConnectionValidator : IConnectionValidator
 {
     public async ValueTask<ConnectionValidationResponse> ValidateConnection(
-        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         CancellationToken cancellationToken)
     {
-        var client = new MSTeamsClient(authenticationCredentialsProviders);
+        var credentials = ConnectionCredentials.FromProviders(authenticationCredentialsProviders);
 
         try
         {
-            await client.Me.GetAsync(cancellationToken: cancellationToken);
+            if (credentials.IsApplicationConnection)
+            {
+                await AppTokenService.GetBotAccessTokenAsync(credentials, cancellationToken);
+            }
+            else
+            {
+                var client = new MSTeamsClient(authenticationCredentialsProviders);
+                await client.Me.GetAsync(cancellationToken: cancellationToken);
+            }
+
             return new ConnectionValidationResponse
             {
                 IsValid = true,

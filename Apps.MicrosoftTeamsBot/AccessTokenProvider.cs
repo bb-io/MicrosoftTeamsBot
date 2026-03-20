@@ -1,20 +1,27 @@
-﻿using Microsoft.Kiota.Abstractions.Authentication;
+using Apps.MicrosoftTeamsBot.Auth;
+using Microsoft.Kiota.Abstractions.Authentication;
 
-namespace Apps.MicrosoftTeamsBot
+namespace Apps.MicrosoftTeamsBot;
+
+public class AccessTokenProvider : IAccessTokenProvider
 {
-    public class AccessTokenProvider : IAccessTokenProvider
+    private readonly ConnectionCredentials _credentials;
+
+    public AccessTokenProvider(ConnectionCredentials credentials)
     {
-        public string Token { get; set; }
+        _credentials = credentials;
+    }
 
-        public AccessTokenProvider(string token) : base() {
-            Token = token;
-        }
+    public AllowedHostsValidator AllowedHostsValidator { get; } = new(["graph.microsoft.com"]);
 
-        public AllowedHostsValidator AllowedHostsValidator => throw new NotImplementedException();
+    public async Task<string> GetAuthorizationTokenAsync(
+        Uri uri,
+        Dictionary<string, object>? additionalAuthenticationContext = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!string.IsNullOrWhiteSpace(_credentials.AccessToken))
+            return _credentials.AccessToken;
 
-        public Task<string> GetAuthorizationTokenAsync(Uri uri, Dictionary<string, object>? additionalAuthenticationContext = null, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(Token);
-        }
+        return await AppTokenService.GetGraphAccessTokenAsync(_credentials, cancellationToken);
     }
 }
