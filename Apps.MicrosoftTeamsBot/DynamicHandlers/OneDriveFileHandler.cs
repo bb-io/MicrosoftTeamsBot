@@ -1,5 +1,7 @@
-﻿using Blackbird.Applications.Sdk.Common;
+using Apps.MicrosoftTeamsBot.Auth;
+using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Microsoft.Graph.Models;
 
@@ -14,6 +16,10 @@ public class OneDriveFileHandler : BaseInvocable, IAsyncDataSourceHandler
     public async Task<Dictionary<string, string>> GetDataAsync(DataSourceContext context,
         CancellationToken cancellationToken)
     {
+        var credentials = ConnectionCredentials.FromProviders(InvocationContext.AuthenticationCredentialsProviders);
+        if (credentials.IsApplicationConnection)
+            throw new PluginApplicationException("OneDrive file selection is not supported for the application connection type.");
+
         var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
         var drive = await client.Me.Drive.GetAsync(cancellationToken: cancellationToken);
         var filesDictionary = new Dictionary<string, string>();
@@ -37,15 +43,15 @@ public class OneDriveFileHandler : BaseInvocable, IAsyncDataSourceHandler
                 .Select(item => item.DriveItem)
                 .Select(item => new { item.Id, Path = GetFilePath(item) })
                 .Where(item => item.Path.Contains(context.SearchString ?? "", StringComparison.OrdinalIgnoreCase));
-            
+
             foreach (var file in filteredFiles)
                 filesDictionary.Add(file.Id, file.Path);
-            
+
             filesAmount += filteredFiles.Count();
             skipToken = files.OdataNextLink?.Split("skiptoken=")[^1];
             requestInformation.QueryParameters["%24skiptoken"] = skipToken;
         } while (filesAmount < 20 && skipToken != null);
-        
+
         foreach (var file in filesDictionary)
         {
             var filePath = file.Value;
