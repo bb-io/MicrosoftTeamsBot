@@ -6,12 +6,9 @@ using System.Net;
 
 namespace Apps.MicrosoftTeamsBot
 {
-    public class MSTeamsBotClient : BlackBirdRestClient
+    public class MSTeamsBotClient(string botServiceEndpoint) 
+        : BlackBirdRestClient(new RestClientOptions { BaseUrl = CreateUri(botServiceEndpoint) })
     {
-        public MSTeamsBotClient(string botServiceEndpoint) : base(new RestClientOptions() { BaseUrl = CreateUri(botServiceEndpoint) })
-        {
-        }
-
         private static Uri CreateUri(string uriString)
         {
             try
@@ -31,7 +28,9 @@ namespace Apps.MicrosoftTeamsBot
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                return new PluginApplicationException("Authorization failed. Please check your credentials or ensure you have the necessary permissions.");
+                return new PluginApplicationException(
+                    "Authorization failed. Please check your credentials or ensure you have the necessary permissions." +
+                    $"Details: {response.Content}");
             }
 
             var errorMessage = $"Error: {response.Content} - Message: {response.ErrorMessage} - {response.ErrorException}";
