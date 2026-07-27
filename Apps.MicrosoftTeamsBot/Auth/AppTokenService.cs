@@ -1,7 +1,9 @@
-using System.Text.Json;
+using Apps.MicrosoftTeamsBot.Constants;
 using Apps.MicrosoftTeamsBot.Dtos;
 using Blackbird.Applications.Sdk.Common.Exceptions;
+using Newtonsoft.Json;
 using RestSharp;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Apps.MicrosoftTeamsBot.Auth;
 
@@ -46,31 +48,22 @@ public static class AppTokenService
 
     public static async Task<string> GetBotAccessTokenAsync(ConnectionCredentials credentials, CancellationToken cancellationToken = default)
     {
-        var isOwnAppBot = string.Equals(credentials.ConnectionType, ConnectionTypes.Application, StringComparison.OrdinalIgnoreCase);
-        
-        if (isOwnAppBot && (string.IsNullOrWhiteSpace(credentials.ClientId) || string.IsNullOrWhiteSpace(credentials.ClientSecret)))
-            throw new PluginMisconfigurationException("Application connection requires bot client ID and client secret");
-        
-        string clientId = (isOwnAppBot ? credentials.ClientId! : ApplicationConstants.BotClientId).Trim();
-        string clientSecret = (isOwnAppBot ? credentials.ClientSecret! : ApplicationConstants.BotClientSecret).Trim();
-        string scope = string.IsNullOrWhiteSpace(ApplicationConstants.BotScope) ? BotFrameworkScope : ApplicationConstants.BotScope;
-        string tenantId = isOwnAppBot && !string.IsNullOrWhiteSpace(credentials.TenantId) 
-            ? credentials.TenantId.Trim()
-            : BotFrameworkTenant;
-        
-        string url = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+        string url = $"https://login.microsoftonline.com/{BotFrameworkTenant}/oauth2/v2.0/token";
 
         var client = new RestClient();
         var request = new RestRequest(url, Method.Post)
             .AddParameter("grant_type", "client_credentials")
-            .AddParameter("client_id", clientId)
-            .AddParameter("client_secret", clientSecret)
-            .AddParameter("scope", scope);
+            .AddParameter("client_id", ApplicationConstants.BotClientId)
+            .AddParameter("client_secret", ApplicationConstants.BotClientSecret)
+            .AddParameter("scope", BotFrameworkScope);
 
-        var response = await client.ExecuteAsync<NotAuthResponse>(request, cancellationToken);
-        if (!response.IsSuccessful || response.Data?.AccessToken is null)
-            throw new PluginApplicationException($"Failed to request bot access token: {response.Content}");
+        var response = await client.ExecuteAsync(request, cancellationToken);
+        if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
+            throw new PluginApplicationException($"Bot token request failed. Response: {response.Content}");
 
-        return response.Data.AccessToken;
+        var deserialized = JsonConvert.DeserializeObject<NotAuthResponse>(response.Content);
+        return deserialized is null 
+            ? throw new PluginApplicationException("Deserialized auth bot response was empty") 
+            : deserialized.AccessToken;
     }
 }
