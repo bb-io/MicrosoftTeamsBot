@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Apps.MicrosoftTeamsBot.Dtos;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using RestSharp;
 
 namespace Apps.MicrosoftTeamsBot.Auth;
@@ -7,7 +8,8 @@ namespace Apps.MicrosoftTeamsBot.Auth;
 public static class AppTokenService
 {
     private const string GraphScope = "https://graph.microsoft.com/.default";
-    private const string BotTokenUrl = "https://login.microsoftonline.com/botframework.com/oauth2/v2.0/token";
+    private const string BotFrameworkScope = "https://api.botframework.com/.default";
+    private const string BotFrameworkTenant = "botframework.com";
 
     public static async Task<string> GetGraphAccessTokenAsync(ConnectionCredentials credentials, CancellationToken cancellationToken = default)
     {
@@ -44,20 +46,30 @@ public static class AppTokenService
 
     public static async Task<string> GetBotAccessTokenAsync(ConnectionCredentials credentials, CancellationToken cancellationToken = default)
     {
-        var clientId = credentials.ClientId ?? ApplicationConstants.BotClientId;
-        var clientSecret = credentials.ClientSecret ?? ApplicationConstants.BotClientSecret;
+        var isOwnAppBot = string.Equals(credentials.ConnectionType, ConnectionTypes.Application, StringComparison.OrdinalIgnoreCase);
+        
+        if (isOwnAppBot && (string.IsNullOrWhiteSpace(credentials.ClientId) || string.IsNullOrWhiteSpace(credentials.ClientSecret)))
+            throw new PluginMisconfigurationException("Application connection requires bot client ID and client secret");
+        
+        string clientId = (isOwnAppBot ? credentials.ClientId! : ApplicationConstants.BotClientId).Trim();
+        string clientSecret = (isOwnAppBot ? credentials.ClientSecret! : ApplicationConstants.BotClientSecret).Trim();
+        string scope = string.IsNullOrWhiteSpace(ApplicationConstants.BotScope) ? BotFrameworkScope : ApplicationConstants.BotScope;
+        string tenantId = isOwnAppBot && !string.IsNullOrWhiteSpace(credentials.TenantId) 
+            ? credentials.TenantId.Trim()
+            : BotFrameworkTenant;
+        
+        string url = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
 
         var client = new RestClient();
-        var request = new RestRequest(BotTokenUrl, Method.Post);
-        request.AlwaysMultipartFormData = true;
-        request.AddParameter("grant_type", "client_credentials");
-        request.AddParameter("client_id", clientId);
-        request.AddParameter("client_secret", clientSecret);
-        request.AddParameter("scope", ApplicationConstants.BotScope);
+        var request = new RestRequest(url, Method.Post)
+            .AddParameter("grant_type", "client_credentials")
+            .AddParameter("client_id", clientId)
+            .AddParameter("client_secret", clientSecret)
+            .AddParameter("scope", scope);
 
         var response = await client.ExecuteAsync<NotAuthResponse>(request, cancellationToken);
         if (!response.IsSuccessful || response.Data?.AccessToken is null)
-            throw new InvalidOperationException($"Failed to request bot access token: {response.Content}");
+            throw new PluginApplicationException($"Failed to request bot access token: {response.Content}");
 
         return response.Data.AccessToken;
     }
