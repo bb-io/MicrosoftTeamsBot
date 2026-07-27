@@ -1,4 +1,4 @@
-﻿namespace Apps.MicrosoftTeamsBot;
+﻿namespace Apps.MicrosoftTeamsBot.Constants;
 
 public class ApplicationConstants
 {
