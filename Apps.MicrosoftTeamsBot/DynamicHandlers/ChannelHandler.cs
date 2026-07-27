@@ -1,4 +1,3 @@
-using Apps.MicrosoftTeamsBot.Auth;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -18,38 +17,7 @@ public class ChannelHandler : BaseInvocable, IAsyncDataSourceHandler
         CancellationToken cancellationToken)
     {
         var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
-        var credentials = ConnectionCredentials.FromProviders(InvocationContext.AuthenticationCredentialsProviders);
         var channels = new Dictionary<string, string>();
-
-        if (credentials.IsApplicationConnection)
-        {
-            var teams = await client.Groups.GetAsync(requestConfiguration =>
-            {
-                requestConfiguration.QueryParameters.Filter = "resourceProvisioningOptions/Any(x:x eq 'Team')";
-                requestConfiguration.QueryParameters.Select = new[] { "id", "displayName" };
-                requestConfiguration.QueryParameters.Top = 100;
-            }, cancellationToken);
-
-            foreach (var team in teams?.Value ?? Enumerable.Empty<Group>())
-            {
-                if (string.IsNullOrWhiteSpace(team.Id))
-                    continue;
-
-                var teamChannels = await client.Teams[team.Id].Channels.GetAsync(cancellationToken: cancellationToken);
-
-                foreach (var channel in teamChannels?.Value ?? Enumerable.Empty<Channel>())
-                {
-                    var channelName = channel.DisplayName ?? "Unnamed channel";
-                    if (!MatchesSearch(context.SearchString, team.DisplayName, channelName))
-                        continue;
-
-                    var key = JsonConvert.SerializeObject(new TeamChannel { TeamId = team.Id, ChannelId = channel.Id });
-                    channels[key] = $"{channelName} ({team.DisplayName} team)";
-                }
-            }
-
-            return channels;
-        }
 
         var joinedTeams = await client.Me.JoinedTeams.GetAsync(cancellationToken: cancellationToken);
         foreach (var team in joinedTeams?.Value ?? Enumerable.Empty<Team>())

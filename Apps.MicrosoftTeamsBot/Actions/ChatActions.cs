@@ -5,7 +5,6 @@ using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using RestSharp;
 
 namespace Apps.MicrosoftTeamsBot.Actions
@@ -15,12 +14,9 @@ namespace Apps.MicrosoftTeamsBot.Actions
     {
         private readonly IEnumerable<AuthenticationCredentialsProvider> _authenticationCredentialsProviders;
 
-        private readonly IFileManagementClient _fileManagementClient;
-
-        public ChatActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) : base(invocationContext)
+        public ChatActions(InvocationContext invocationContext) : base(invocationContext)
         {
             _authenticationCredentialsProviders = invocationContext.AuthenticationCredentialsProviders;
-            _fileManagementClient = fileManagementClient;
         }
 
         [Action("Reply to message in chat", Description = "Reply to message in chat")]

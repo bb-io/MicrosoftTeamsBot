@@ -1,3 +1,4 @@
+using Apps.MicrosoftTeamsBot.Constants;
 using Blackbird.Applications.Sdk.Common.Authentication;
 
 namespace Apps.MicrosoftTeamsBot.Auth;
@@ -9,13 +10,6 @@ public class ConnectionCredentials
     public string? ClientId { get; init; }
     public string? TenantId { get; init; }
     public string? ClientSecret { get; init; }
-
-    public bool IsApplicationConnection =>
-        string.Equals(ConnectionType, ConnectionTypes.Application, StringComparison.OrdinalIgnoreCase) ||
-        (!string.IsNullOrWhiteSpace(ClientId) &&
-         !string.IsNullOrWhiteSpace(ClientSecret) &&
-         !string.IsNullOrWhiteSpace(TenantId) &&
-         string.IsNullOrWhiteSpace(AccessToken));
 
     public static ConnectionCredentials FromProviders(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
     {
