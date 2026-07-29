@@ -5,7 +5,6 @@ using Apps.MicrosoftTeamsBot.Models.Requests;
 using Apps.MicrosoftTeamsBot.Models.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Utils.Extensions.Files;
@@ -20,19 +19,10 @@ using RestSharp;
 namespace Apps.MicrosoftTeamsBot.Actions;
 
 [ActionList("Channels")]
-public class ChannelActions : BaseInvocable
+public class ChannelActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
+    : MsTeamsBotInvocable(invocationContext)
 {
-    private readonly IEnumerable<AuthenticationCredentialsProvider> _authenticationCredentialsProviders;
-
-    private readonly IFileManagementClient _fileManagementClient;
-
-    public ChannelActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) : base(invocationContext)
-    {
-        _authenticationCredentialsProviders = invocationContext.AuthenticationCredentialsProviders;
-        _fileManagementClient = fileManagementClient;
-    }
-
-    [Action("Reply to message in channel", Description = "Reply to message in channel")]
+    [Action("Reply to message in channel", Description = "Post a reply to an existing message in a channel")]
     public async Task<ChatMessageDto> ReplyToMessageInChannel([ActionParameter] ChannelIdentifier channelIdentifier,
         [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
     {
@@ -40,7 +30,7 @@ public class ChannelActions : BaseInvocable
         var botClient = new MSTeamsBotClient(input.BotServiceUrl);
         var botRequest = new MSTeamsBotRequest(
             $"v3/conversations/{teamChannel.ChannelId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}",
-            Method.Post, _authenticationCredentialsProviders);
+            Method.Post, Creds);
 
         botRequest.AddStringBody(
             JsonConvert.SerializeObject(new ChannelMessageSendDto()
@@ -52,7 +42,7 @@ public class ChannelActions : BaseInvocable
         return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
     }
 
-    [Action("Send message to channel", Description = "Send message to channel")]
+    [Action("Send message to channel", Description = "Post a new message to the specified channel")]
     public async Task<ChatMessageDto> SendMessageToChannel([ActionParameter] ChannelIdentifier channelIdentifier,
         [ActionParameter] SendMessageRequest input)
     {
@@ -60,7 +50,7 @@ public class ChannelActions : BaseInvocable
         var botClient = new MSTeamsBotClient(input.BotServiceUrl);
         var botRequest = new MSTeamsBotRequest(
             $"v3/conversations/{teamChannel.ChannelId}/activities",
-            Method.Post, _authenticationCredentialsProviders);
+            Method.Post, Creds);
         botRequest.AddJsonBody(new
         {
             type = "message",
@@ -69,12 +59,12 @@ public class ChannelActions : BaseInvocable
         return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
     }
 
-    [Action("Download files attached to channel message", Description = "Download files attached to channel message")]
+    [Action("Download files attached to channel message", Description = "Download files attached to a channel message")]
     public async Task<DownloadFilesAttachedToMessageResponse> DownloadFilesAttachedToMessage(
         [ActionParameter] ChannelIdentifier channelIdentifier,
         [ActionParameter] MessageIdentifier messageIdentifier)
     {
-        var client = new MSTeamsClient(_authenticationCredentialsProviders);
+        var client = new MSTeamsClient(Creds);
         var teamChannel = JsonConvert.DeserializeObject<TeamChannel>(channelIdentifier.TeamChannelId);
 
         try
@@ -94,7 +84,7 @@ public class ChannelActions : BaseInvocable
                 var contentBytes = await fileContent.GetByteData();
 
                 using var stream = new MemoryStream(contentBytes);
-                var file = await _fileManagementClient.UploadAsync(stream, fileData.File.MimeType, fileData.Name);
+                var file = await fileManagementClient.UploadAsync(stream, fileData.File.MimeType, fileData.Name);
 
                 resultFiles.Add(file);
             }
@@ -167,7 +157,7 @@ public class ChannelActions : BaseInvocable
 
         var uploadSession = await client.Drives[drive.Id].Items[teamsFilesFolder.Id].ItemWithPath(file.Name)
             .CreateUploadSession.PostAsync(uploadSessionRequestBody);
-        using var stream = await _fileManagementClient.DownloadAsync(file);
+        using var stream = await fileManagementClient.DownloadAsync(file);
         using var memoryStream = new MemoryStream();
         stream.CopyTo(memoryStream);
 

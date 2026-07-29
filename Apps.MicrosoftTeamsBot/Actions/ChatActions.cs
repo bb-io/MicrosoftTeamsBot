@@ -3,52 +3,43 @@ using Apps.MicrosoftTeamsBot.Models.Identifiers;
 using Apps.MicrosoftTeamsBot.Models.Requests;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using RestSharp;
 
-namespace Apps.MicrosoftTeamsBot.Actions
+namespace Apps.MicrosoftTeamsBot.Actions;
+
+[ActionList("Chats")]
+public class ChatActions(InvocationContext invocationContext) : MsTeamsBotInvocable(invocationContext)
 {
-    [ActionList("Chats")]
-    public class ChatActions : BaseInvocable
+    [Action("Reply to message in chat", Description = "Post a reply to an existing message in a chat")]
+    public async Task<ChatMessageDto> ReplyToMessageInChat([ActionParameter] ChatIdentifier chatIdentifier,
+    [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
     {
-        private readonly IEnumerable<AuthenticationCredentialsProvider> _authenticationCredentialsProviders;
-
-        public ChatActions(InvocationContext invocationContext) : base(invocationContext)
+        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        var botRequest = new MSTeamsBotRequest(
+            $"v3/conversations/{chatIdentifier.ChatId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}",
+            Method.Post, Creds);
+        botRequest.AddJsonBody(new
         {
-            _authenticationCredentialsProviders = invocationContext.AuthenticationCredentialsProviders;
-        }
+            type = "message",
+            text = input.Message
+        });
+        return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
+    }
 
-        [Action("Reply to message in chat", Description = "Reply to message in chat")]
-        public async Task<ChatMessageDto> ReplyToMessageInChat([ActionParameter] ChatIdentifier chatIdentifier,
-        [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
+    [Action("Send message to chat", Description = "Post a new message to the specified chat")]
+    public async Task<ChatMessageDto> SendMessageToChat([ActionParameter] ChatIdentifier chatIdentifier,
+    [ActionParameter] SendMessageRequest input)
+    {
+        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        var botRequest = new MSTeamsBotRequest(
+            $"v3/conversations/{chatIdentifier.ChatId}/activities",
+            Method.Post, Creds);
+        botRequest.AddJsonBody(new
         {
-            var botClient = new MSTeamsBotClient(input.BotServiceUrl);
-            var botRequest = new MSTeamsBotRequest(
-                $"v3/conversations/{chatIdentifier.ChatId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}",
-                Method.Post, _authenticationCredentialsProviders);
-            botRequest.AddJsonBody(new
-            {
-                type = "message",
-                text = input.Message
-            });
-            return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
-        }
-
-        [Action("Send message to chat", Description = "Send message to chat")]
-        public async Task<ChatMessageDto> SendMessageToChat([ActionParameter] ChatIdentifier chatIdentifier,
-        [ActionParameter] SendMessageRequest input)
-        {
-            var botClient = new MSTeamsBotClient(input.BotServiceUrl);
-            var botRequest = new MSTeamsBotRequest(
-                $"v3/conversations/{chatIdentifier.ChatId}/activities",
-                Method.Post, _authenticationCredentialsProviders);
-            botRequest.AddJsonBody(new
-            {
-                type = "message",
-                text = input.Message
-            });
-            return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
-        }
+            type = "message",
+            text = input.Message
+        });
+        return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
     }
 }
