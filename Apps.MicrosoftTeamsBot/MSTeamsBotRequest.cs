@@ -14,8 +14,7 @@ public class MSTeamsBotRequest : BlackBirdRestRequest
 
     protected override void AddAuth(IEnumerable<AuthenticationCredentialsProvider> creds)
     {
-        var credentials = ConnectionCredentials.FromProviders(creds);
-        var accessToken = AppTokenService.GetBotAccessTokenAsync(credentials).GetAwaiter().GetResult();
+        var accessToken = AppTokenService.GetBotAccessTokenAsync().GetAwaiter().GetResult();
         this.AddHeader("Authorization", $"Bearer {accessToken}");
     }
 }

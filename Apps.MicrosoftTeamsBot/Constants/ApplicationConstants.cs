@@ -1,6 +1,6 @@
 ﻿namespace Apps.MicrosoftTeamsBot.Constants;
 
-public class ApplicationConstants
+public static class ApplicationConstants
 {
     public const string TeamsClientId = "#{MSTEAMS_CLIENT_ID}#";
     public const string TeamsClientSecret = "#{MSTEAMS_SECRET}#";
@@ -12,5 +12,4 @@ public class ApplicationConstants
     public const string BotAppName = "teamsbot";
     public const string BotClientId = "#{MSTEAMSBOT_CLIENT_ID}#";
     public const string BotClientSecret = "#{MSTEAMSBOT_SECRET}#";
-    public const string BotScope = "#{MSTEAMSBOT_SCOPE}#";
 }
