@@ -3,15 +3,17 @@ using Blackbird.Applications.Sdk.Utils.RestSharp;
 using Newtonsoft.Json;
 using RestSharp;
 using System.Net;
+using Apps.MicrosoftTeamsBot.Authenticator;
 
 namespace Apps.MicrosoftTeamsBot
 {
-    public class MSTeamsBotClient : BlackBirdRestClient
-    {
-        public MSTeamsBotClient(string botServiceEndpoint) : base(new RestClientOptions() { BaseUrl = CreateUri(botServiceEndpoint) })
+    public class MSTeamsBotClient(string botServiceEndpoint) 
+        : BlackBirdRestClient(new RestClientOptions
         {
-        }
-
+            BaseUrl = CreateUri(botServiceEndpoint),
+            Authenticator = new TeamsBotAuthenticator()
+        })
+    {
         private static Uri CreateUri(string uriString)
         {
             try
@@ -31,7 +33,9 @@ namespace Apps.MicrosoftTeamsBot
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                return new PluginApplicationException("Authorization failed. Please check your credentials or ensure you have the necessary permissions.");
+                return new PluginApplicationException(
+                    "Authorization failed. Please check your credentials or ensure you have the necessary permissions." +
+                    $"Details: {response.Content}");
             }
 
             var errorMessage = $"Error: {response.Content} - Message: {response.ErrorMessage} - {response.ErrorException}";

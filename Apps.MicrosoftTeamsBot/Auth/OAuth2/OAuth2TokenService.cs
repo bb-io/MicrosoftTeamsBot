@@ -3,6 +3,7 @@ using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Authentication.OAuth2;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using System.Text.Json;
+using Apps.MicrosoftTeamsBot.Constants;
 
 namespace Apps.MicrosoftTeamsBot.Authorization.OAuth2
 {

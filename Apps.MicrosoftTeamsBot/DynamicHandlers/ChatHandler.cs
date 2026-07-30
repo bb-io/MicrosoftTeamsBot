@@ -1,7 +1,5 @@
-using Apps.MicrosoftTeamsBot.Auth;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
-using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Microsoft.Graph.Models;
 
@@ -17,10 +15,6 @@ namespace Apps.MicrosoftTeamsBot.DynamicHandlers
             DataSourceContext context,
             CancellationToken cancellationToken)
         {
-            var credentials = ConnectionCredentials.FromProviders(InvocationContext.AuthenticationCredentialsProviders);
-            if (credentials.IsApplicationConnection)
-                throw new PluginApplicationException("Chat lookup is not supported for the application connection type.");
-
             var client = new MSTeamsClient(InvocationContext.AuthenticationCredentialsProviders);
             var me = await client.Me.GetAsync(cancellationToken: cancellationToken);
             var chats = await client.Me.Chats.GetAsync(requestConfiguration =>

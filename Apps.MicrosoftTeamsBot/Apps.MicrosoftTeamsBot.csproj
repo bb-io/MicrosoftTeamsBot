@@ -5,18 +5,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Product>Microsoft 365 Teams Bot</Product>
-    <Version>1.0.18</Version>
+    <Version>1.0.19</Version>
     <Description>The messaging app</Description>
     <AssemblyName>Apps.MicrosoftTeamsBot</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blackbird.Applications.SDK.Blueprints" Version="1.0.0-rc.10308" />
-    <PackageReference Include="Blackbird.Applications.SDK.Extensions.FileManagement" Version="1.0.1" />
+    <PackageReference Include="Blackbird.Applications.SDK.Blueprints" Version="1.0.2" />
+    <PackageReference Include="Blackbird.Applications.SDK.Extensions.FileManagement" Version="1.1.0" />
     <PackageReference Include="Blackbird.Applications.Sdk.Utils" Version="1.0.26" />
-    <PackageReference Include="Microsoft.Graph" Version="5.40.0" />
+    <PackageReference Include="Microsoft.Graph" Version="6.2.0" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource CopyToOutputDirectory="Always" Include="image\icon.png"></EmbeddedResource>
+    <EmbeddedResource Include="..\readme.md" CopyToOutputDirectory="Always"/>
   </ItemGroup>
 </Project>

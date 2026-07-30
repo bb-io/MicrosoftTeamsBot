@@ -1,3 +1,4 @@
+using Apps.MicrosoftTeamsBot.Constants;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Connections;
 
@@ -41,18 +42,6 @@ public class ConnectionDefinition : IConnectionDefinition
                         new("no", "No")
                     ]
                 },
-                new(CredNames.ClientId) { DisplayName = "Application (client) ID" },
-                new(CredNames.TenantId) { DisplayName = "Directory (tenant) ID" },
-                new(CredNames.ClientSecret) { DisplayName = "Client secret", Sensitive = true }
-            ]
-        },
-        new()
-        {
-            Name = ConnectionTypes.Application,
-            DisplayName = "Application",
-            AuthenticationType = ConnectionAuthenticationType.Undefined,
-            ConnectionProperties =
-            [
                 new(CredNames.ClientId) { DisplayName = "Application (client) ID" },
                 new(CredNames.TenantId) { DisplayName = "Directory (tenant) ID" },
                 new(CredNames.ClientSecret) { DisplayName = "Client secret", Sensitive = true }
