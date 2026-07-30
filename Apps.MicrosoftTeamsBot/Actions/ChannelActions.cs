@@ -25,12 +25,14 @@ public class ChannelActions(InvocationContext invocationContext, IFileManagement
     public async Task<ChatMessageDto> ReplyToMessageInChannel(
         [ActionParameter] ChannelIdentifier channelIdentifier,
         [ActionParameter] MessageIdentifier messageIdentifier, 
-        [ActionParameter] SendMessageRequest input)
+        [ActionParameter] SendMessageRequest input,
+        [ActionParameter] ServiceUrlIdentifier urlIdentifier)
     {
+        string serviceUrl = urlIdentifier.Resolve();
         string teamChannelId = channelIdentifier.Resolve().ChannelId;
         string endpoint = $"v3/conversations/{teamChannelId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}";
         
-        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        var botClient = new MSTeamsBotClient(serviceUrl);
         var botRequest = new RestRequest(endpoint, Method.Post)
             .AddStringBody(
                 JsonConvert.SerializeObject(new ChannelMessageSendDto()
@@ -46,10 +48,13 @@ public class ChannelActions(InvocationContext invocationContext, IFileManagement
     [Action("Send message to channel", Description = "Post a new message to the specified channel")]
     public async Task<ChatMessageDto> SendMessageToChannel(
         [ActionParameter] ChannelIdentifier channelIdentifier,
-        [ActionParameter] SendMessageRequest input)
+        [ActionParameter] SendMessageRequest input,
+        [ActionParameter] ServiceUrlIdentifier urlIdentifier)
     {
+        string serviceUrl = urlIdentifier.Resolve();
         string teamChannelId = channelIdentifier.Resolve().ChannelId;
-        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        
+        var botClient = new MSTeamsBotClient(serviceUrl);
         var botRequest = new RestRequest($"v3/conversations/{teamChannelId}/activities", Method.Post);
         
         botRequest.AddJsonBody(new

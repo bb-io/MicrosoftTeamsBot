@@ -15,12 +15,14 @@ public class ChatActions(InvocationContext invocationContext) : MsTeamsBotInvoca
     public async Task<ChatMessageDto> ReplyToMessageInChat(
         [ActionParameter] ChatIdentifier chatIdentifier, 
         [ActionParameter] MessageIdentifier messageIdentifier, 
-        [ActionParameter] SendMessageRequest input)
+        [ActionParameter] SendMessageRequest input,
+        [ActionParameter] ServiceUrlIdentifier urlIdentifier)
     {
+        string serviceUrl = urlIdentifier.Resolve();
         string endpoint =
             $"v3/conversations/{chatIdentifier.ChatId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}";
         
-        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        var botClient = new MSTeamsBotClient(serviceUrl);
         var botRequest = new RestRequest(endpoint, Method.Post)
             .AddJsonBody(new 
             {
@@ -33,9 +35,12 @@ public class ChatActions(InvocationContext invocationContext) : MsTeamsBotInvoca
     [Action("Send message to chat", Description = "Post a new message to the specified chat")]
     public async Task<ChatMessageDto> SendMessageToChat(
         [ActionParameter] ChatIdentifier chatIdentifier, 
-        [ActionParameter] SendMessageRequest input)
+        [ActionParameter] SendMessageRequest input,
+        [ActionParameter] ServiceUrlIdentifier urlIdentifier)
     {
-        var botClient = new MSTeamsBotClient(input.BotServiceUrl);
+        string serviceUrl = urlIdentifier.Resolve();
+        
+        var botClient = new MSTeamsBotClient(serviceUrl);
         var botRequest = new RestRequest($"v3/conversations/{chatIdentifier.ChatId}/activities", Method.Post)
             .AddJsonBody(new
             {
