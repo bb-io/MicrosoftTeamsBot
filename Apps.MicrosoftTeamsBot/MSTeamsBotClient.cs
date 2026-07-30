@@ -3,11 +3,16 @@ using Blackbird.Applications.Sdk.Utils.RestSharp;
 using Newtonsoft.Json;
 using RestSharp;
 using System.Net;
+using Apps.MicrosoftTeamsBot.Authenticator;
 
 namespace Apps.MicrosoftTeamsBot
 {
     public class MSTeamsBotClient(string botServiceEndpoint) 
-        : BlackBirdRestClient(new RestClientOptions { BaseUrl = CreateUri(botServiceEndpoint) })
+        : BlackBirdRestClient(new RestClientOptions
+        {
+            BaseUrl = CreateUri(botServiceEndpoint),
+            Authenticator = new TeamsBotAuthenticator()
+        })
     {
         private static Uri CreateUri(string uriString)
         {

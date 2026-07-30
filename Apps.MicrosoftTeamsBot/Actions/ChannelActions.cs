@@ -1,5 +1,4 @@
 ﻿using Apps.MicrosoftTeamsBot.Dtos;
-using Apps.MicrosoftTeamsBot.DynamicHandlers;
 using Apps.MicrosoftTeamsBot.Models.Identifiers;
 using Apps.MicrosoftTeamsBot.Models.Requests;
 using Apps.MicrosoftTeamsBot.Models.Responses;
@@ -23,34 +22,36 @@ public class ChannelActions(InvocationContext invocationContext, IFileManagement
     : MsTeamsBotInvocable(invocationContext)
 {
     [Action("Reply to message in channel", Description = "Post a reply to an existing message in a channel")]
-    public async Task<ChatMessageDto> ReplyToMessageInChannel([ActionParameter] ChannelIdentifier channelIdentifier,
-        [ActionParameter] MessageIdentifier messageIdentifier, [ActionParameter] SendMessageRequest input)
+    public async Task<ChatMessageDto> ReplyToMessageInChannel(
+        [ActionParameter] ChannelIdentifier channelIdentifier,
+        [ActionParameter] MessageIdentifier messageIdentifier, 
+        [ActionParameter] SendMessageRequest input)
     {
-        var teamChannel = JsonConvert.DeserializeObject<TeamChannel>(channelIdentifier.TeamChannelId);
+        string teamChannelId = channelIdentifier.Resolve().ChannelId;
+        string endpoint = $"v3/conversations/{teamChannelId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}";
+        
         var botClient = new MSTeamsBotClient(input.BotServiceUrl);
-        var botRequest = new MSTeamsBotRequest(
-            $"v3/conversations/{teamChannel.ChannelId};messageid={messageIdentifier.MessageId}/activities/{messageIdentifier.MessageId}",
-            Method.Post, Creds);
-
-        botRequest.AddStringBody(
-            JsonConvert.SerializeObject(new ChannelMessageSendDto()
-            {
-                Type = "message",
-                Text = input.AttachmentFile != null ? "" : (input.Message ?? ""),
-                Attachments = await CreateAttachment(input)
-            }), DataFormat.Json);
+        var botRequest = new RestRequest(endpoint, Method.Post)
+            .AddStringBody(
+                JsonConvert.SerializeObject(new ChannelMessageSendDto()
+                {
+                    Type = "message",
+                    Text = input.AttachmentFile != null ? "" : (input.Message ?? ""),
+                    Attachments = await CreateAttachment(input)
+                }), DataFormat.Json);
+        
         return await botClient.ExecuteWithErrorHandling<ChatMessageDto>(botRequest);
     }
 
     [Action("Send message to channel", Description = "Post a new message to the specified channel")]
-    public async Task<ChatMessageDto> SendMessageToChannel([ActionParameter] ChannelIdentifier channelIdentifier,
+    public async Task<ChatMessageDto> SendMessageToChannel(
+        [ActionParameter] ChannelIdentifier channelIdentifier,
         [ActionParameter] SendMessageRequest input)
     {
-        var teamChannel = JsonConvert.DeserializeObject<TeamChannel>(channelIdentifier.TeamChannelId);
+        string teamChannelId = channelIdentifier.Resolve().ChannelId;
         var botClient = new MSTeamsBotClient(input.BotServiceUrl);
-        var botRequest = new MSTeamsBotRequest(
-            $"v3/conversations/{teamChannel.ChannelId}/activities",
-            Method.Post, Creds);
+        var botRequest = new RestRequest($"v3/conversations/{teamChannelId}/activities", Method.Post);
+        
         botRequest.AddJsonBody(new
         {
             type = "message",
@@ -65,7 +66,7 @@ public class ChannelActions(InvocationContext invocationContext, IFileManagement
         [ActionParameter] MessageIdentifier messageIdentifier)
     {
         var client = new MSTeamsClient(Creds);
-        var teamChannel = JsonConvert.DeserializeObject<TeamChannel>(channelIdentifier.TeamChannelId);
+        var teamChannel = channelIdentifier.Resolve();
 
         try
         {
