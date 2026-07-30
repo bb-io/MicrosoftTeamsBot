@@ -1,16 +1,11 @@
-﻿using Apps.MicrosoftTeamsBot.DynamicHandlers;
-using Apps.MicrosoftTeamsBot.Webhooks.Inputs;
+﻿using Apps.MicrosoftTeamsBot.Models.Identifiers;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Webhooks;
-using Newtonsoft.Json;
 
 namespace Apps.MicrosoftTeamsBot.Webhooks.Handlers.Channel;
 
-public class MessageSentToChannelWebhookHandler : BaseWebhookHandler
+public class MessageSentToChannelWebhookHandler(InvocationContext invocationContext, [WebhookParameter(true)] ChannelIdentifier channel)
+    : BaseWebhookHandler(invocationContext, SubscriptionEvent, channel.Resolve().ChannelId)
 {
     private const string SubscriptionEvent = "message";
-    
-    public MessageSentToChannelWebhookHandler(InvocationContext invocationContext, [WebhookParameter(true)] ChannelInput channel) 
-        : base(invocationContext, SubscriptionEvent, JsonConvert.DeserializeObject<TeamChannel>(channel.TeamChannelId).ChannelId) { }
-
 }
